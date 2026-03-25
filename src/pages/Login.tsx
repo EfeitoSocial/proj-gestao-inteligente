@@ -1,30 +1,24 @@
-import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
+import { useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { toast } from '@/hooks/use-toast'
 
 export const Login = () => {
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
-  const [loginField, setLoginField] = useState('');
-  const [password, setPassword] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const { signIn } = useAuth()
+  const navigate = useNavigate()
+  const [loginField, setLoginField] = useState('')
+  const [password, setPassword] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+    e.preventDefault()
+    setSubmitting(true)
     try {
-      const { error } = await signIn(loginField.trim(), password);
+      const { error } = await signIn(loginField.trim(), password)
       if (error) {
         toast({
           title: 'Falha no login',
@@ -33,23 +27,21 @@ export const Login = () => {
               ? String((error as { message: string }).message)
               : 'Verifique suas credenciais.',
           variant: 'destructive',
-        });
+        })
       } else {
-        navigate('/dashboard');
+        navigate('/dashboard')
       }
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Entrar</CardTitle>
-          <CardDescription>
-            Use o e-mail e a senha cadastrados na plataforma.
-          </CardDescription>
+          <CardDescription>Use o e-mail e a senha cadastrados na plataforma.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,5 +80,5 @@ export const Login = () => {
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}

@@ -1,62 +1,52 @@
-import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useProjeto } from '@/hooks/useProjeto';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
+import { useProjeto } from '@/hooks/useProjeto'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 
 function parseMoney(raw: string): number {
-  const t = raw.trim().replace(/\s/g, '');
-  if (!t) return 0;
-  const normalized = t.includes(',')
-    ? t.replace(/\./g, '').replace(',', '.')
-    : t;
-  const n = Number(normalized);
-  return Number.isFinite(n) ? n : 0;
+  const t = raw.trim().replace(/\s/g, '')
+  if (!t) return 0
+  const normalized = t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : t
+  const n = Number(normalized)
+  return Number.isFinite(n) ? n : 0
 }
 
 export const CadastrarProjeto = () => {
-  const { user, signOut } = useAuth();
-  const { salvarProjeto, loading } = useProjeto();
-  const navigate = useNavigate();
+  const { user, signOut } = useAuth()
+  const { salvarProjeto, loading } = useProjeto()
+  const navigate = useNavigate()
 
-  const [nomeProjeto, setNomeProjeto] = useState('');
-  const [localidadeProjeto, setLocalidadeProjeto] = useState('');
-  const [tipoInvestimento, setTipoInvestimento] = useState<'privado' | 'ir'>(
-    'privado',
-  );
-  const [leiProjeto, setLeiProjeto] = useState('');
-  const [segmentoProjeto, setSegmentoProjeto] = useState('');
-  const [valorTotal, setValorTotal] = useState('');
-  const [valorAporte, setValorAporte] = useState('');
-  const [numeroPessoas, setNumeroPessoas] = useState('');
-  const [resumo, setResumo] = useState('');
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
+  const [nomeProjeto, setNomeProjeto] = useState('')
+  const [localidadeProjeto, setLocalidadeProjeto] = useState('')
+  const [tipoInvestimento, setTipoInvestimento] = useState<'privado' | 'ir'>('privado')
+  const [leiProjeto, setLeiProjeto] = useState('')
+  const [segmentoProjeto, setSegmentoProjeto] = useState('')
+  const [valorTotal, setValorTotal] = useState('')
+  const [valorAporte, setValorAporte] = useState('')
+  const [numeroPessoas, setNumeroPessoas] = useState('')
+  const [resumo, setResumo] = useState('')
+  const [dataInicio, setDataInicio] = useState('')
+  const [dataFim, setDataFim] = useState('')
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-  };
+    await signOut()
+    navigate('/login')
+  }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     const ok = await salvarProjeto(
       {
         cnpj: '',
@@ -87,11 +77,11 @@ export const CadastrarProjeto = () => {
       [],
       [],
       [],
-    );
+    )
     if (ok) {
-      navigate('/projetos');
+      navigate('/projetos')
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -117,8 +107,7 @@ export const CadastrarProjeto = () => {
           <CardHeader>
             <CardTitle>Dados do projeto</CardTitle>
             <CardDescription>
-              Preencha os campos essenciais. Você pode complementar depois na
-              edição do projeto.
+              Preencha os campos essenciais. Você pode complementar depois na edição do projeto.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -145,9 +134,7 @@ export const CadastrarProjeto = () => {
                 <Label>Tipo de investimento</Label>
                 <Select
                   value={tipoInvestimento}
-                  onValueChange={(v) =>
-                    setTipoInvestimento(v as 'privado' | 'ir')
-                  }
+                  onValueChange={(v) => setTipoInvestimento(v as 'privado' | 'ir')}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -247,5 +234,5 @@ export const CadastrarProjeto = () => {
         </Card>
       </main>
     </div>
-  );
-};
+  )
+}

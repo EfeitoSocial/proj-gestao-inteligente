@@ -1,33 +1,26 @@
-import { Link, useNavigate } from 'react-router-dom';
-import {
-  DollarSign,
-  FolderKanban,
-  MapPin,
-  Users,
-} from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
-import { MetricsCard } from '@/dashboard/MetricsCard';
-import { DevelopmentChart } from '@/dashboard/DevelopmentChart';
-import { ImpactChart } from '@/dashboard/ImpactChart';
-import { ProjectsList } from '@/dashboard/ProjectsList';
-import { LocationsMap } from '@/dashboard/LocationsMap';
+import { Link, useNavigate } from 'react-router-dom'
+import { DollarSign, FolderKanban, MapPin, Users } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { useDashboardMetrics } from '@/hooks/useDashboardMetrics'
+import { MetricsCard } from '@/dashboard/MetricsCard'
+import { DevelopmentChart } from '@/dashboard/DevelopmentChart'
+import { ImpactChart } from '@/dashboard/ImpactChart'
+import { ProjectsList } from '@/dashboard/ProjectsList'
+import { LocationsMap } from '@/dashboard/LocationsMap'
 
 const formatBRL = (n: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-    n,
-  );
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n)
 
 export const Dashboard = () => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const { metrics, loading } = useDashboardMetrics();
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+  const { metrics, loading } = useDashboardMetrics()
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-  };
+    await signOut()
+    navigate('/login')
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -35,9 +28,7 @@ export const Dashboard = () => {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
           <div>
             <h1 className="text-lg font-semibold">Painel</h1>
-            <p className="text-sm text-muted-foreground">
-              {user?.email ?? 'Usuário autenticado'}
-            </p>
+            <p className="text-sm text-muted-foreground">{user?.email ?? 'Usuário autenticado'}</p>
           </div>
           <nav className="flex flex-wrap items-center gap-2">
             <Button variant="outline" asChild>
@@ -94,5 +85,5 @@ export const Dashboard = () => {
         <LocationsMap />
       </main>
     </div>
-  );
-};
+  )
+}

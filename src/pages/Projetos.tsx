@@ -1,16 +1,16 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { ListarProjetos } from '@/dashboard/ListarProjetos';
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { ListarProjetos } from '@/dashboard/ListarProjetos'
 
 export const Projetos = () => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-  };
+    await signOut()
+    navigate('/login')
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,5 +37,5 @@ export const Projetos = () => {
         <ListarProjetos />
       </main>
     </div>
-  );
-};
+  )
+}

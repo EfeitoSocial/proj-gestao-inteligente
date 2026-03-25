@@ -1,31 +1,25 @@
-import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
+import { useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { toast } from '@/hooks/use-toast'
 
 export const SignUp = () => {
-  const { signUp } = useAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [nomeFantasia, setNomeFantasia] = useState('');
-  const [razaoSocial, setRazaoSocial] = useState('');
-  const [cnpj, setCnpj] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const { signUp } = useAuth()
+  const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [nomeFantasia, setNomeFantasia] = useState('')
+  const [razaoSocial, setRazaoSocial] = useState('')
+  const [cnpj, setCnpj] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+    e.preventDefault()
+    setSubmitting(true)
     try {
       const { error } = await signUp(
         email.trim(),
@@ -33,7 +27,7 @@ export const SignUp = () => {
         nomeFantasia.trim(),
         razaoSocial.trim(),
         cnpj.replace(/\D/g, ''),
-      );
+      )
       if (error) {
         toast({
           title: 'Não foi possível cadastrar',
@@ -42,27 +36,25 @@ export const SignUp = () => {
               ? String((error as { message: string }).message)
               : 'Tente novamente em instantes.',
           variant: 'destructive',
-        });
+        })
       } else {
         toast({
           title: 'Cadastro enviado',
           description: 'Verifique seu e-mail, se necessário, e faça login.',
-        });
-        navigate('/login');
+        })
+        navigate('/login')
       }
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle>Criar conta</CardTitle>
-          <CardDescription>
-            Informe os dados da empresa e defina uma senha.
-          </CardDescription>
+          <CardDescription>Informe os dados da empresa e defina uma senha.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -130,5 +122,5 @@ export const SignUp = () => {
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}

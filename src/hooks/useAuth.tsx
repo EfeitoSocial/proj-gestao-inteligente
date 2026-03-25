@@ -1,56 +1,49 @@
-import {
-  useState,
-  useEffect,
-  createContext,
-  useContext,
-  type FC,
-  type ReactNode,
-} from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, createContext, useContext, type FC, type ReactNode } from 'react'
+import { User } from '@supabase/supabase-js'
+import { supabase } from '@/integrations/supabase/client'
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
+  user: User | null
+  loading: boolean
   signUp: (
     email: string,
     password: string,
     nomeFantasia: string,
     razaoSocial: string,
     cnpj: string,
-  ) => Promise<{ error: any }>;
-  signIn: (loginField: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
+  ) => Promise<{ error: any }>
+  signIn: (loginField: string, password: string) => Promise<{ error: any }>
+  signOut: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Verificar sessão atual
     const getSession = async () => {
       const {
         data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
-    };
+      } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+      setLoading(false)
+    }
 
-    getSession();
+    getSession()
 
     // Escutar mudanças de autenticação
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => subscription.unsubscribe()
+  }, [])
 
   const signUp = async (
     email: string,
@@ -69,9 +62,9 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
           cnpj: cnpj,
         },
       },
-    });
-    return { error };
-  };
+    })
+    return { error }
+  }
 
   const signIn = async (loginField: string, password: string) => {
     // Se o campo de login contém @, assumir que é um e-mail
@@ -79,8 +72,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       const { error } = await supabase.auth.signInWithPassword({
         email: loginField,
         password,
-      });
-      return { error };
+      })
+      return { error }
     }
 
     // Se não contém @, buscar o e-mail através do CNPJ ou Nome Fantasia na tabela profiles
@@ -89,12 +82,12 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         .from('profiles')
         .select('id')
         .or(`cnpj.eq.${loginField},nome_fantasia.ilike.${loginField}`)
-        .single();
+        .single()
 
       if (profileError || !profile) {
         return {
           error: { message: 'Empresa não encontrada ou dados incorretos' },
-        };
+        }
       }
 
       // Buscar o usuário na tabela auth.users usando o ID do perfil
@@ -103,27 +96,26 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
-        .or(`cnpj.eq.${loginField},nome_fantasia.ilike.${loginField}`);
+        .or(`cnpj.eq.${loginField},nome_fantasia.ilike.${loginField}`)
 
       if (profilesError || !profiles || profiles.length === 0) {
-        return { error: { message: 'Empresa não encontrada' } };
+        return { error: { message: 'Empresa não encontrada' } }
       }
 
       // Como não podemos acessar o email diretamente, retornamos um erro mais específico
       return {
         error: {
-          message:
-            'Para login com CNPJ ou Nome Fantasia, use seu e-mail cadastrado',
+          message: 'Para login com CNPJ ou Nome Fantasia, use seu e-mail cadastrado',
         },
-      };
+      }
     } catch (e) {
-      return { error: { message: 'Erro ao processar login' } };
+      return { error: { message: 'Erro ao processar login' } }
     }
-  };
+  }
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-  };
+    await supabase.auth.signOut()
+  }
 
   const value = {
     user,
@@ -131,15 +123,15 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     signUp,
     signIn,
     signOut,
-  };
+  }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider')
   }
-  return context;
-};
+  return context
+}
