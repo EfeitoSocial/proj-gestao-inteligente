@@ -1,98 +1,104 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { Loader2, Upload, Plus } from 'lucide-react';
-import { LocalidadeProjeto } from '@/pages/LocalidadeProjeto';
-import { DocumentUpload } from './DocumentUpload';
-import { ContrapartidaUpload } from './ContrapartidaUpload';
+import React, { useState, useEffect } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { supabase } from '@/integrations/supabase/client'
+import { toast } from '@/hooks/use-toast'
+import { Loader2, Upload, Plus } from 'lucide-react'
+import { LocalidadeProjeto } from '@/pages/LocalidadeProjeto'
+import { DocumentUpload } from './DocumentUpload'
+import { ContrapartidaUpload } from './ContrapartidaUpload'
 
 // Funções para validação e formatação de CPF
 const formatCPF = (cpf: string) => {
-  const numbers = cpf.replace(/\D/g, '');
-  return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-};
+  const numbers = cpf.replace(/\D/g, '')
+  return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+}
 
 const validateCPF = (cpf: string) => {
-  const numbers = cpf.replace(/\D/g, '');
-  
-  if (numbers.length !== 11) return false;
-  
+  const numbers = cpf.replace(/\D/g, '')
+
+  if (numbers.length !== 11) return false
+
   // Verifica se todos os dígitos são iguais
-  if (/^(\d)\1{10}$/.test(numbers)) return false;
-  
+  if (/^(\d)\1{10}$/.test(numbers)) return false
+
   // Calcula o primeiro dígito verificador
-  let sum = 0;
+  let sum = 0
   for (let i = 0; i < 9; i++) {
-    sum += parseInt(numbers[i]) * (10 - i);
+    sum += parseInt(numbers[i]) * (10 - i)
   }
-  let remainder = sum % 11;
-  const firstDigit = remainder < 2 ? 0 : 11 - remainder;
-  
-  if (parseInt(numbers[9]) !== firstDigit) return false;
-  
+  let remainder = sum % 11
+  const firstDigit = remainder < 2 ? 0 : 11 - remainder
+
+  if (parseInt(numbers[9]) !== firstDigit) return false
+
   // Calcula o segundo dígito verificador
-  sum = 0;
+  sum = 0
   for (let i = 0; i < 10; i++) {
-    sum += parseInt(numbers[i]) * (11 - i);
+    sum += parseInt(numbers[i]) * (11 - i)
   }
-  remainder = sum % 11;
-  const secondDigit = remainder < 2 ? 0 : 11 - remainder;
-  
-  return parseInt(numbers[10]) === secondDigit;
-};
+  remainder = sum % 11
+  const secondDigit = remainder < 2 ? 0 : 11 - remainder
+
+  return parseInt(numbers[10]) === secondDigit
+}
 
 interface Documento {
-  id: number;
-  tipo: string;
-  descricao: string;
-  arquivo_url?: string;
+  id: number
+  tipo: string
+  descricao: string
+  arquivo_url?: string
 }
 
 interface Contrapartida {
-  id: number;
-  quantidade: string;
-  descricao: string;
-  data: string;
-  evidencia: string;
+  id: number
+  quantidade: string
+  descricao: string
+  data: string
+  evidencia: string
 }
 
 interface Projeto {
-  id: string;
-  nome_projeto: string;
-  localidade_projeto: string;
-  tipo_investimento: string;
-  valor_total_projeto: number;
-  valor_aporte_projeto: number;
-  numero_pessoas_impactadas: number;
-  resumo_projeto: string;
+  id: string
+  nome_projeto: string
+  localidade_projeto: string
+  tipo_investimento: string
+  valor_total_projeto: number
+  valor_aporte_projeto: number
+  numero_pessoas_impactadas: number
+  resumo_projeto: string
   // data_aporte?: string;
-  classe_social_atingida?: string;
-  faixa_etaria_atingida?: string;
+  classe_social_atingida?: string
+  faixa_etaria_atingida?: string
   // periodo_realizacao?: string;
-  lei_projeto?: string;
-  segmento_projeto?: string;
-  cnpj?: string;
-  proponente?: string;
-  localidade?: string;
-  representante_legal?: string;
-  cpf_representante?: string;
-  email?: string;
-  contato?: string;
-  numero_projeto?: string;
-  status_projeto?: string;
+  lei_projeto?: string
+  segmento_projeto?: string
+  cnpj?: string
+  proponente?: string
+  localidade?: string
+  representante_legal?: string
+  cpf_representante?: string
+  email?: string
+  contato?: string
+  numero_projeto?: string
+  status_projeto?: string
 }
 
 interface EditProjectDialogProps {
-  projeto: Projeto;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onProjectUpdated: (updatedProject: Projeto) => void;
+  projeto: Projeto
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onProjectUpdated: (updatedProject: Projeto) => void
 }
 
 export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
@@ -101,32 +107,25 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
   onOpenChange,
   onProjectUpdated,
 }) => {
-  const [formData, setFormData] = useState<Projeto>(projeto);
-  const [loading, setLoading] = useState(false);
-  const [cpfError, setCpfError] = useState('');
-  const [documentos, setDocumentos] = useState<Documento[]>([]);
-  const [contrapartidas, setContrapartidas] = useState<Contrapartida[]>([]);
+  const [formData, setFormData] = useState<Projeto>(projeto)
+  const [loading, setLoading] = useState(false)
+  const [cpfError, setCpfError] = useState('')
+  const [documentos, setDocumentos] = useState<Documento[]>([])
+  const [contrapartidas, setContrapartidas] = useState<Contrapartida[]>([])
 
   // Estados para matching CadastrarProjeto
-  const [tipoInvestimento, setTipoInvestimento] = useState(projeto.tipo_investimento || '');
-  const [leiProjeto, setLeiProjeto] = useState(projeto.lei_projeto || '');
-  const [segmentoProjeto, setSegmentoProjeto] = useState(projeto.segmento_projeto || '');
+  const [tipoInvestimento, setTipoInvestimento] = useState(projeto.tipo_investimento || '')
+  const [leiProjeto, setLeiProjeto] = useState(projeto.lei_projeto || '')
+  const [segmentoProjeto, setSegmentoProjeto] = useState(projeto.segmento_projeto || '')
   // const [dataAporte, setDataAporte] = useState(projeto.data_aporte || '');
-  const [classeSocial, setClasseSocial] = useState(projeto.classe_social_atingida || '');
-  const [faixaEtaria, setFaixaEtaria] = useState(projeto.faixa_etaria_atingida || '');
+  const [classeSocial, setClasseSocial] = useState(projeto.classe_social_atingida || '')
+  const [faixaEtaria, setFaixaEtaria] = useState(projeto.faixa_etaria_atingida || '')
   // const [periodoRealizacao, setPeriodoRealizacao] = useState(projeto.periodo_realizacao || '');
-  const [statusProjeto, setStatusProjeto] = useState(projeto.status_projeto || 'ativo');
+  const [statusProjeto, setStatusProjeto] = useState(projeto.status_projeto || 'ativo')
 
   // Dados das opções conforme CadastrarProjeto
   const leisPorTipo: { [key: string]: string[] } = {
-    privado: [
-      'Cultura',
-      'Esporte',
-      'Reciclagem',
-      'Criança e Adolescente',
-      'Idoso',
-      'Outros',
-    ],
+    privado: ['Cultura', 'Esporte', 'Reciclagem', 'Criança e Adolescente', 'Idoso', 'Outros'],
     ir: [
       'Lei da Cultura',
       'Lei do Esporte',
@@ -136,7 +135,7 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
       'Pronas/PCD',
       'Pronon',
     ],
-  };
+  }
 
   const segmentosPorLei = {
     Cultura: [
@@ -169,11 +168,7 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
       'Eventos e Festivais',
       'Formação e Capacitação',
     ],
-    Esporte: [
-      'Desporto Educacional',
-      'Desporto de Participação',
-      'Desporto de Rendimento',
-    ],
+    Esporte: ['Desporto Educacional', 'Desporto de Participação', 'Desporto de Rendimento'],
     'Lei do Esporte': [
       'Desporto Educacional',
       'Desporto de Participação',
@@ -267,20 +262,20 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
       'Educação Profissional',
       'Outros',
     ],
-  };
+  }
 
   // Carrega documentos e contrapartidas do projeto
   const loadProjectData = async () => {
-    if (!projeto.id) return;
+    if (!projeto.id) return
 
     try {
       // Carrega documentos
       const { data: documentosData, error: documentosError } = await supabase
         .from('projeto_documentos')
         .select('*')
-        .eq('projeto_id', projeto.id);
+        .eq('projeto_id', projeto.id)
 
-      if (documentosError) throw documentosError;
+      if (documentosError) throw documentosError
 
       if (documentosData?.length > 0) {
         const documentosFormatted = documentosData.map((doc, index) => ({
@@ -288,24 +283,26 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
           tipo: doc.tipo,
           descricao: doc.descricao || '',
           arquivo_url: doc.arquivo_url || undefined,
-        }));
-        setDocumentos(documentosFormatted);
+        }))
+        setDocumentos(documentosFormatted)
       } else {
-        setDocumentos([{
-          id: 1,
-          tipo: '',
-          descricao: '',
-          arquivo_url: undefined,
-        }]);
+        setDocumentos([
+          {
+            id: 1,
+            tipo: '',
+            descricao: '',
+            arquivo_url: undefined,
+          },
+        ])
       }
 
       // Carrega contrapartidas
       const { data: contrapartidasData, error: contrapartidasError } = await supabase
         .from('projeto_contrapartidas')
         .select('*')
-        .eq('projeto_id', projeto.id);
+        .eq('projeto_id', projeto.id)
 
-      if (contrapartidasError) throw contrapartidasError;
+      if (contrapartidasError) throw contrapartidasError
 
       if (contrapartidasData?.length > 0) {
         const contrapartidasFormatted = contrapartidasData.map((contra, index) => ({
@@ -314,77 +311,79 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
           descricao: contra.descricao || '',
           data: contra.data || '',
           evidencia: contra.evidencia || '',
-        }));
-        setContrapartidas(contrapartidasFormatted);
+        }))
+        setContrapartidas(contrapartidasFormatted)
       } else {
-        setContrapartidas([{
-          id: 1,
-          quantidade: '',
-          descricao: '',
-          data: '',
-          evidencia: '',
-        }]);
+        setContrapartidas([
+          {
+            id: 1,
+            quantidade: '',
+            descricao: '',
+            data: '',
+            evidencia: '',
+          },
+        ])
       }
     } catch (error) {
-      console.error('Erro ao carregar dados do projeto:', error);
+      console.error('Erro ao carregar dados do projeto:', error)
       toast({
-        title: "Erro",
-        description: "Erro ao carregar documentos e contrapartidas",
-        variant: "destructive",
-      });
+        title: 'Erro',
+        description: 'Erro ao carregar documentos e contrapartidas',
+        variant: 'destructive',
+      })
     }
-  };
+  }
 
   useEffect(() => {
-    setFormData(projeto);
-    setTipoInvestimento(projeto.tipo_investimento || '');
-    setLeiProjeto(projeto.lei_projeto || '');
-    setSegmentoProjeto(projeto.segmento_projeto || '');
-    setClasseSocial(projeto.classe_social_atingida || '');
-    setFaixaEtaria(projeto.faixa_etaria_atingida || '');
-    setStatusProjeto(projeto.status_projeto || 'ativo');
-    setCpfError('');
-    
+    setFormData(projeto)
+    setTipoInvestimento(projeto.tipo_investimento || '')
+    setLeiProjeto(projeto.lei_projeto || '')
+    setSegmentoProjeto(projeto.segmento_projeto || '')
+    setClasseSocial(projeto.classe_social_atingida || '')
+    setFaixaEtaria(projeto.faixa_etaria_atingida || '')
+    setStatusProjeto(projeto.status_projeto || 'ativo')
+    setCpfError('')
+
     if (open && projeto.id) {
-      loadProjectData();
+      loadProjectData()
     }
-  }, [projeto, open]);
+  }, [projeto, open])
 
   const handleInputChange = (field: keyof Projeto, value: string | number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
-    }));
-  };
+    }))
+  }
 
   const handleCpfChange = (value: string) => {
     // Remove caracteres não numéricos
-    const numbers = value.replace(/\D/g, '');
-    
+    const numbers = value.replace(/\D/g, '')
+
     // Limita a 11 dígitos
-    const limitedNumbers = numbers.slice(0, 11);
-    
+    const limitedNumbers = numbers.slice(0, 11)
+
     // Aplica a formatação
-    const formattedCpf = formatCPF(limitedNumbers);
-    
+    const formattedCpf = formatCPF(limitedNumbers)
+
     // Atualiza o estado
-    handleInputChange('cpf_representante', formattedCpf);
-    
+    handleInputChange('cpf_representante', formattedCpf)
+
     // Valida o CPF se tem 11 dígitos
     if (limitedNumbers.length === 11) {
       if (!validateCPF(limitedNumbers)) {
-        setCpfError('CPF inválido. Verifique os números digitados.');
+        setCpfError('CPF inválido. Verifique os números digitados.')
       } else {
-        setCpfError('');
+        setCpfError('')
       }
     } else {
-      setCpfError('');
+      setCpfError('')
     }
-  };
+  }
 
   // Funções para gerenciar documentos
   const adicionarDocumento = () => {
-    const novoId = documentos.length > 0 ? Math.max(...documentos.map((d) => d.id)) + 1 : 1;
+    const novoId = documentos.length > 0 ? Math.max(...documentos.map((d) => d.id)) + 1 : 1
     setDocumentos([
       ...documentos,
       {
@@ -393,24 +392,20 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
         descricao: '',
         arquivo_url: undefined,
       },
-    ]);
-  };
+    ])
+  }
 
   const removerDocumento = (id: number) => {
-    setDocumentos(documentos.filter((d) => d.id !== id));
-  };
+    setDocumentos(documentos.filter((d) => d.id !== id))
+  }
 
   const updateDocumento = (id: number, field: string, value: string) => {
-    setDocumentos(
-      documentos.map((doc) =>
-        doc.id === id ? { ...doc, [field]: value } : doc,
-      ),
-    );
-  };
+    setDocumentos(documentos.map((doc) => (doc.id === id ? { ...doc, [field]: value } : doc)))
+  }
 
   // Funções para gerenciar contrapartidas
   const adicionarContrapartida = () => {
-    const novoId = contrapartidas.length > 0 ? Math.max(...contrapartidas.map((c) => c.id)) + 1 : 1;
+    const novoId = contrapartidas.length > 0 ? Math.max(...contrapartidas.map((c) => c.id)) + 1 : 1
     setContrapartidas([
       ...contrapartidas,
       {
@@ -420,39 +415,35 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
         data: '',
         evidencia: '',
       },
-    ]);
-  };
+    ])
+  }
 
   const removerContrapartida = (id: number) => {
-    setContrapartidas(contrapartidas.filter((c) => c.id !== id));
-  };
+    setContrapartidas(contrapartidas.filter((c) => c.id !== id))
+  }
 
   const updateContrapartida = (id: number, field: string, value: string) => {
-    setContrapartidas(
-      contrapartidas.map((c) =>
-        c.id === id ? { ...c, [field]: value } : c,
-      ),
-    );
-  };
+    setContrapartidas(contrapartidas.map((c) => (c.id === id ? { ...c, [field]: value } : c)))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     // Validação do CPF antes do envio
     if (formData.cpf_representante) {
-      const cpfNumbers = formData.cpf_representante.replace(/\D/g, '');
+      const cpfNumbers = formData.cpf_representante.replace(/\D/g, '')
       if (cpfNumbers.length === 11 && !validateCPF(cpfNumbers)) {
-        setCpfError('CPF inválido. Verifique os números digitados.');
+        setCpfError('CPF inválido. Verifique os números digitados.')
         toast({
-          title: "Erro de validação",
-          description: "CPF inválido. Verifique os números digitados.",
-          variant: "destructive",
-        });
-        return;
+          title: 'Erro de validação',
+          description: 'CPF inválido. Verifique os números digitados.',
+          variant: 'destructive',
+        })
+        return
       }
     }
-    
-    setLoading(true);
+
+    setLoading(true)
 
     try {
       const { data, error } = await supabase
@@ -483,79 +474,73 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
         })
         .eq('id', projeto.id)
         .select()
-        .single();
+        .single()
 
-      if (error) throw error;
+      if (error) throw error
 
       // Atualizar documentos
-      await supabase
-        .from('projeto_documentos')
-        .delete()
-        .eq('projeto_id', projeto.id);
+      await supabase.from('projeto_documentos').delete().eq('projeto_id', projeto.id)
 
       if (documentos.length > 0) {
         const documentosData = documentos
-          .filter(doc => doc.tipo && doc.descricao) // Só salva documentos preenchidos
-          .map(doc => ({
+          .filter((doc) => doc.tipo && doc.descricao) // Só salva documentos preenchidos
+          .map((doc) => ({
             projeto_id: projeto.id,
             tipo: doc.tipo,
             descricao: doc.descricao,
             arquivo_url: doc.arquivo_url || null,
-          }));
+          }))
 
         if (documentosData.length > 0) {
           const { error: documentosError } = await supabase
             .from('projeto_documentos')
-            .insert(documentosData);
+            .insert(documentosData)
 
-          if (documentosError) throw documentosError;
+          if (documentosError) throw documentosError
         }
       }
 
       // Atualizar contrapartidas
-      await supabase
-        .from('projeto_contrapartidas')
-        .delete()
-        .eq('projeto_id', projeto.id);
+      await supabase.from('projeto_contrapartidas').delete().eq('projeto_id', projeto.id)
 
       if (contrapartidas.length > 0) {
         const contrapartidasData = contrapartidas
-          .filter(contra => contra.quantidade || contra.descricao || contra.data) // Só salva contrapartidas preenchidas
-          .map(contra => ({
+          .filter((contra) => contra.quantidade || contra.descricao || contra.data) // Só salva contrapartidas preenchidas
+          .map((contra) => ({
             projeto_id: projeto.id,
             quantidade: contra.quantidade,
             descricao: contra.descricao,
             data: contra.data,
             evidencia: contra.evidencia || 'Não evidenciado',
-          }));
+          }))
 
         if (contrapartidasData.length > 0) {
           const { error: contrapartidasError } = await supabase
             .from('projeto_contrapartidas')
-            .insert(contrapartidasData);
+            .insert(contrapartidasData)
 
-          if (contrapartidasError) throw contrapartidasError;
+          if (contrapartidasError) throw contrapartidasError
         }
       }
 
       toast({
-        title: "Sucesso",
-        description: "Projeto atualizado com sucesso!",
-      });
+        title: 'Sucesso',
+        description: 'Projeto atualizado com sucesso!',
+      })
 
-      onProjectUpdated(data);
-      onOpenChange(false);
+      onProjectUpdated(data)
+      onOpenChange(false)
     } catch (error) {
-      console.error('Erro ao atualizar projeto:', error);
+      console.error('Erro ao atualizar projeto:', error)
       toast({
-        title: "Erro",
-        description: "Erro ao atualizar projeto. Tente novamente.",
-        variant: "destructive",
-      });
+        title: 'Erro',
+        description: 'Erro ao atualizar projeto. Tente novamente.',
+        variant: 'destructive',
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -567,9 +552,7 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* DADOS DO PROPONENTE */}
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-700">
-              DADOS DO PROPONENTE
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-700">DADOS DO PROPONENTE</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
@@ -634,9 +617,7 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
                   onChange={(e) => handleCpfChange(e.target.value)}
                   className={cpfError ? 'border-red-500' : ''}
                 />
-                {cpfError && (
-                  <p className="text-red-500 text-sm mt-1">{cpfError}</p>
-                )}
+                {cpfError && <p className="text-red-500 text-sm mt-1">{cpfError}</p>}
               </div>
             </div>
 
@@ -667,9 +648,7 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
 
           {/* DADOS DO PROJETO */}
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-700">
-              DADOS DO PROJETO
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-700">DADOS DO PROJETO</h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div>
@@ -694,11 +673,7 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   ODS ATENDIDOS
                 </label>
-                <Input
-                  placeholder="ODS"
-                  disabled
-                  className="bg-gray-100"
-                />
+                <Input placeholder="ODS" disabled className="bg-gray-100" />
               </div>
             </div>
 
@@ -710,9 +685,9 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
                 <Select
                   value={tipoInvestimento}
                   onValueChange={(value) => {
-                    setTipoInvestimento(value);
-                    setLeiProjeto('');
-                    setSegmentoProjeto('');
+                    setTipoInvestimento(value)
+                    setLeiProjeto('')
+                    setSegmentoProjeto('')
                   }}
                 >
                   <SelectTrigger>
@@ -731,8 +706,8 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
                 <Select
                   value={leiProjeto}
                   onValueChange={(value) => {
-                    setLeiProjeto(value);
-                    setSegmentoProjeto('');
+                    setLeiProjeto(value)
+                    setSegmentoProjeto('')
                   }}
                   disabled={!tipoInvestimento}
                 >
@@ -761,13 +736,11 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
                     <SelectValue placeholder="Selecione o segmento do projeto" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(segmentosPorLei[leiProjeto] || []).map(
-                      (segmento, index) => (
-                        <SelectItem key={index} value={segmento}>
-                          {segmento}
-                        </SelectItem>
-                      ),
-                    )}
+                    {(segmentosPorLei[leiProjeto] || []).map((segmento, index) => (
+                      <SelectItem key={index} value={segmento}>
+                        {segmento}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -794,7 +767,7 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
                   onChange={(e) => handleInputChange('valor_aporte_projeto', e.target.value)}
                 />
               </div>
-            
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   NÚMERO DO PROJETO
@@ -851,7 +824,9 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
                   placeholder="Número de pessoas"
                   type="number"
                   value={formData.numero_pessoas_impactadas || ''}
-                  onChange={(e) => handleInputChange('numero_pessoas_impactadas', parseInt(e.target.value) || 0)}
+                  onChange={(e) =>
+                    handleInputChange('numero_pessoas_impactadas', parseInt(e.target.value) || 0)
+                  }
                 />
               </div>
               {/* <div>
@@ -921,9 +896,7 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
                     <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
                       Arquivo
                     </th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-                      Ações
-                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -965,15 +938,11 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
                     <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
                       Descrição
                     </th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-                      Data
-                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Data</th>
                     <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
                       Evidência
                     </th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-                      Ações
-                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1013,5 +982,5 @@ export const EditProjectDialog: React.FC<EditProjectDialogProps> = ({
         </form>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}

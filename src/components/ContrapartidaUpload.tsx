@@ -1,4 +1,3 @@
-
 // import React, { useState } from 'react';
 // import { Button } from '@/components/ui/button';
 // import { Input } from '@/components/ui/input';
@@ -120,7 +119,6 @@
 //   }
 // };
 
-
 //   return (
 //     <tr className="border-t">
 //       <td className="px-4 py-2">
@@ -212,38 +210,37 @@
 //   );
 // };
 
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Upload, Trash2, ImageIcon } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import React, { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Upload, Trash2, ImageIcon } from 'lucide-react'
+import { supabase } from '@/integrations/supabase/client'
+import { toast } from '@/hooks/use-toast'
 
 interface Contrapartida {
-  id: number;
-  quantidade: string;
-  descricao: string;
-  data: string;
-  evidencia?: string;
+  id: number
+  quantidade: string
+  descricao: string
+  data: string
+  evidencia?: string
 }
 
 interface ContrapartidaUploadProps {
-  contrapartida: Contrapartida;
-  onUpdate: (id: number, field: string, value: string) => void;
-  onRemove: (id: number) => void;
-  canRemove: boolean;
+  contrapartida: Contrapartida
+  onUpdate: (id: number, field: string, value: string) => void
+  onRemove: (id: number) => void
+  canRemove: boolean
 }
 
 // Função para verificar se a evidência é uma URL válida
 const isValidUrl = (url: string) => {
   try {
-    new URL(url);
-    return true;
+    new URL(url)
+    return true
   } catch {
-    return false;
+    return false
   }
-};
+}
 
 export const ContrapartidaUpload: React.FC<ContrapartidaUploadProps> = ({
   contrapartida,
@@ -251,68 +248,62 @@ export const ContrapartidaUpload: React.FC<ContrapartidaUploadProps> = ({
   onRemove,
   canRemove,
 }) => {
-  const [uploading, setUploading] = useState(false);
-  const [fileName, setFileName] = useState<string>('');
+  const [uploading, setUploading] = useState(false)
+  const [fileName, setFileName] = useState<string>('')
 
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
 
-    setUploading(true);
+    setUploading(true)
     try {
-      const ext = file.name.split('.').pop();
-      const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const path = `contrapartidas/${uniqueName}`;
+      const ext = file.name.split('.').pop()
+      const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const path = `contrapartidas/${uniqueName}`
 
       const { error: uploadError } = await supabase.storage
         .from('project-documents')
-        .upload(path, file);
+        .upload(path, file)
 
-      if (uploadError) throw uploadError;
+      if (uploadError) throw uploadError
 
-      const { data } = supabase.storage
-        .from('project-documents')
-        .getPublicUrl(path);
+      const { data } = supabase.storage.from('project-documents').getPublicUrl(path)
 
-      onUpdate(contrapartida.id, 'evidencia', data.publicUrl || '');
-      setFileName(file.name);
+      onUpdate(contrapartida.id, 'evidencia', data.publicUrl || '')
+      setFileName(file.name)
 
       toast({
         title: 'Sucesso!',
         description: 'Evidência enviada com sucesso.',
-      });
+      })
     } catch (error) {
-      console.error('Erro ao fazer upload da evidência:', error);
+      console.error('Erro ao fazer upload da evidência:', error)
       toast({
         title: 'Erro',
         description: 'Falha ao enviar evidência. Tente novamente.',
         variant: 'destructive',
-      });
+      })
     } finally {
-      setUploading(false);
+      setUploading(false)
     }
-  };
+  }
 
   const handleRemoveEvidencia = async () => {
-    if (!contrapartida.evidencia || !isValidUrl(contrapartida.evidencia)) return;
+    if (!contrapartida.evidencia || !isValidUrl(contrapartida.evidencia)) return
 
     try {
-      const url = new URL(contrapartida.evidencia);
-      const fileName = decodeURIComponent(url.pathname.split('/').pop() || '');
-      const filePath = `contrapartidas/${fileName}`;
+      const url = new URL(contrapartida.evidencia)
+      const fileName = decodeURIComponent(url.pathname.split('/').pop() || '')
+      const filePath = `contrapartidas/${fileName}`
 
-      await supabase.storage
-        .from('project-documents')
-        .remove([filePath]);
+      await supabase.storage.from('project-documents').remove([filePath])
 
-      onUpdate(contrapartida.id, 'evidencia', '');
-      setFileName('');
+      onUpdate(contrapartida.id, 'evidencia', '')
+      setFileName('')
     } catch (error) {
-      console.error('Erro ao remover evidência:', error);
+      console.error('Erro ao remover evidência:', error)
     }
-  };
+  }
 
   return (
     <tr className="border-t">
@@ -391,5 +382,5 @@ export const ContrapartidaUpload: React.FC<ContrapartidaUploadProps> = ({
         )}
       </td>
     </tr>
-  );
-};
+  )
+}

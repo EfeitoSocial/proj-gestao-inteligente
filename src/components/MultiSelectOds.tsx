@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Check, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react'
+import { Check, ChevronDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -8,33 +8,29 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Badge } from '@/components/ui/badge'
+import { supabase } from '@/integrations/supabase/client'
 
 interface ODS {
-  id: string;
-  numero: number;
-  nome: string;
+  id: string
+  numero: number
+  nome: string
 }
 
 interface MultiSelectOdsProps {
-  selectedOds: string[];
-  onSelectionChange: (selectedIds: string[]) => void;
+  selectedOds: string[]
+  onSelectionChange: (selectedIds: string[]) => void
 }
 
 export const MultiSelectOds: React.FC<MultiSelectOdsProps> = ({
   selectedOds,
   onSelectionChange,
 }) => {
-  const [open, setOpen] = useState(false);
-  const [odsList, setOdsList] = useState<ODS[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false)
+  const [odsList, setOdsList] = useState<ODS[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchOds = async () => {
@@ -42,45 +38,43 @@ export const MultiSelectOds: React.FC<MultiSelectOdsProps> = ({
         const { data, error } = await supabase
           .from('ods')
           .select('id, numero, nome')
-          .order('numero');
+          .order('numero')
 
         if (error) {
-          console.error('Erro ao buscar ODS:', error);
+          console.error('Erro ao buscar ODS:', error)
         } else {
-          setOdsList(data || []);
+          setOdsList(data || [])
         }
       } catch (error) {
-        console.error('Erro ao buscar ODS:', error);
+        console.error('Erro ao buscar ODS:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchOds();
-  }, []);
+    fetchOds()
+  }, [])
 
   const handleSelect = (odsId: string) => {
-    const isSelected = selectedOds.includes(odsId);
+    const isSelected = selectedOds.includes(odsId)
 
     if (isSelected) {
-      onSelectionChange(selectedOds.filter((id) => id !== odsId));
+      onSelectionChange(selectedOds.filter((id) => id !== odsId))
     } else {
-      onSelectionChange([...selectedOds, odsId]);
+      onSelectionChange([...selectedOds, odsId])
     }
-  };
+  }
 
   const getSelectedOdsNames = () => {
     return odsList
       .filter((ods) => selectedOds.includes(ods.id))
       .map((ods) => `ODS ${ods.numero}`)
-      .join(', ');
-  };
+      .join(', ')
+  }
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        ODS ATENDIDOS
-      </label>
+      <label className="block text-sm font-medium text-gray-700 mb-2">ODS ATENDIDOS</label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -89,9 +83,7 @@ export const MultiSelectOds: React.FC<MultiSelectOdsProps> = ({
             aria-expanded={open}
             className="w-full justify-between"
           >
-            {selectedOds.length > 0
-              ? `${selectedOds.length} ODS selecionados`
-              : 'Selecione os ODS'}
+            {selectedOds.length > 0 ? `${selectedOds.length} ODS selecionados` : 'Selecione os ODS'}
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -108,10 +100,9 @@ export const MultiSelectOds: React.FC<MultiSelectOdsProps> = ({
                     onSelect={() => handleSelect(ods.id)}
                   >
                     <Check
-                      className={`mr-2 h-4 w-4 ${selectedOds.includes(ods.id)
-                        ? 'opacity-100'
-                        : 'opacity-0'
-                        }`}
+                      className={`mr-2 h-4 w-4 ${
+                        selectedOds.includes(ods.id) ? 'opacity-100' : 'opacity-0'
+                      }`}
                     />
                     ODS {ods.numero} - {ods.nome}
                   </CommandItem>
@@ -140,5 +131,5 @@ export const MultiSelectOds: React.FC<MultiSelectOdsProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}

@@ -1,13 +1,13 @@
-import React from 'react';
+import React from 'react'
 
 interface InputFieldProps {
-  label: string;
-  type: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
-  error?: string;
-  required?: boolean;
+  label: string
+  type: string
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  placeholder?: string
+  error?: string
+  required?: boolean
 }
 
 export const InputField: React.FC<InputFieldProps> = ({
@@ -36,5 +36,5 @@ export const InputField: React.FC<InputFieldProps> = ({
       />
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </div>
-  );
-};
+  )
+}

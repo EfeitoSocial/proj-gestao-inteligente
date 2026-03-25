@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { Camera, Upload, X, Image } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/hooks/use-toast';
+import React, { useState } from 'react'
+import { Camera, Upload, X, Image } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
+import { toast } from '@/hooks/use-toast'
 
 interface ProjectPhoto {
-  id: string;
-  foto_url: string;
-  descricao?: string;
-  ordem: number;
+  id: string
+  foto_url: string
+  descricao?: string
+  ordem: number
 }
 
 interface ProjectPhotoUploadProps {
-  photos: ProjectPhoto[];
-  onPhotosChange: (photos: ProjectPhoto[]) => void;
-  maxPhotos?: number;
+  photos: ProjectPhoto[]
+  onPhotosChange: (photos: ProjectPhoto[]) => void
+  maxPhotos?: number
 }
 
 export const ProjectPhotoUpload: React.FC<ProjectPhotoUploadProps> = ({
@@ -23,115 +23,114 @@ export const ProjectPhotoUpload: React.FC<ProjectPhotoUploadProps> = ({
   onPhotosChange,
   maxPhotos = 6,
 }) => {
-  const { user } = useAuth();
-  const [uploading, setUploading] = useState(false);
+  const { user } = useAuth()
+  const [uploading, setUploading] = useState(false)
 
   const uploadPhoto = async (file: File, ordem: number) => {
     if (!user) {
       toast({
-        title: "Erro",
-        description: "Usuário não autenticado",
-        variant: "destructive",
-      });
-      return null;
+        title: 'Erro',
+        description: 'Usuário não autenticado',
+        variant: 'destructive',
+      })
+      return null
     }
 
     try {
-      setUploading(true);
+      setUploading(true)
 
       // Create unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}_${ordem}.${fileExt}`;
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${user.id}/${Date.now()}_${ordem}.${fileExt}`
 
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('project-photos')
-        .upload(fileName, file);
+        .upload(fileName, file)
 
-      if (uploadError) throw uploadError;
+      if (uploadError) throw uploadError
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('project-photos')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('project-photos').getPublicUrl(fileName)
 
       return {
         id: Date.now().toString() + ordem,
         foto_url: publicUrl,
         ordem,
-      };
+      }
     } catch (error) {
-      console.error('Erro ao fazer upload da foto:', error);
+      console.error('Erro ao fazer upload da foto:', error)
       toast({
-        title: "Erro",
-        description: "Erro ao fazer upload da foto. Tente novamente.",
-        variant: "destructive",
-      });
-      return null;
+        title: 'Erro',
+        description: 'Erro ao fazer upload da foto. Tente novamente.',
+        variant: 'destructive',
+      })
+      return null
     } finally {
-      setUploading(false);
+      setUploading(false)
     }
-  };
+  }
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, ordem: number) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const file = event.target.files?.[0]
+    if (!file) return
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Erro",
-        description: "Por favor, selecione apenas arquivos de imagem.",
-        variant: "destructive",
-      });
-      return;
+        title: 'Erro',
+        description: 'Por favor, selecione apenas arquivos de imagem.',
+        variant: 'destructive',
+      })
+      return
     }
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "Erro",
-        description: "A imagem deve ter no máximo 5MB.",
-        variant: "destructive",
-      });
-      return;
+        title: 'Erro',
+        description: 'A imagem deve ter no máximo 5MB.',
+        variant: 'destructive',
+      })
+      return
     }
 
-    const newPhoto = await uploadPhoto(file, ordem);
+    const newPhoto = await uploadPhoto(file, ordem)
     if (newPhoto) {
-      const updatedPhotos = [...photos];
-      const existingIndex = updatedPhotos.findIndex(p => p.ordem === ordem);
+      const updatedPhotos = [...photos]
+      const existingIndex = updatedPhotos.findIndex((p) => p.ordem === ordem)
 
       if (existingIndex >= 0) {
-        updatedPhotos[existingIndex] = newPhoto;
+        updatedPhotos[existingIndex] = newPhoto
       } else {
-        updatedPhotos.push(newPhoto);
+        updatedPhotos.push(newPhoto)
       }
 
       // onPhotosChange(updatedPhotos.sort((a, b) => a.ordem - b.ordem));
-      onPhotosChange([...updatedPhotos].sort((a, b) => a.ordem - b.ordem));
-
+      onPhotosChange([...updatedPhotos].sort((a, b) => a.ordem - b.ordem))
 
       toast({
-        title: "Sucesso",
-        description: "Foto enviada com sucesso!",
-      });
+        title: 'Sucesso',
+        description: 'Foto enviada com sucesso!',
+      })
     }
-  };
+  }
 
   const removePhoto = (ordem: number) => {
-    const updatedPhotos = photos.filter(p => p.ordem !== ordem);
-    onPhotosChange(updatedPhotos);
+    const updatedPhotos = photos.filter((p) => p.ordem !== ordem)
+    onPhotosChange(updatedPhotos)
 
     toast({
-      title: "Sucesso",
-      description: "Foto removida com sucesso!",
-    });
-  };
+      title: 'Sucesso',
+      description: 'Foto removida com sucesso!',
+    })
+  }
 
   const getPhotoByOrder = (ordem: number) => {
-    return photos.find(p => p.ordem === ordem);
-  };
+    return photos.find((p) => p.ordem === ordem)
+  }
 
   return (
     <div className="mb-6">
@@ -151,8 +150,8 @@ export const ProjectPhotoUpload: React.FC<ProjectPhotoUploadProps> = ({
 
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         {Array.from({ length: maxPhotos }, (_, index) => {
-          const ordem = index + 1;
-          const photo = getPhotoByOrder(ordem);
+          const ordem = index + 1
+          const photo = getPhotoByOrder(ordem)
 
           return (
             <div
@@ -199,7 +198,7 @@ export const ProjectPhotoUpload: React.FC<ProjectPhotoUploadProps> = ({
                 </label>
               )}
             </div>
-          );
+          )
         })}
       </div>
 
@@ -207,5 +206,5 @@ export const ProjectPhotoUpload: React.FC<ProjectPhotoUploadProps> = ({
         Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB por imagem.
       </p>
     </div>
-  );
-};
+  )
+}

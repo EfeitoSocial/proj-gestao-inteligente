@@ -31,7 +31,7 @@
 //     const formatCpf = (value: string): string => {
 //     // Remove all non-numeric characters
 //     const numbers = value.replace(/\D/g, '');
-    
+
 //     // Apply CPF formatting
 //     if (numbers.length <= 3) return numbers;
 //     if (numbers.length <= 6) return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
@@ -42,13 +42,13 @@
 //   const validateCpf = (cpf: string): boolean => {
 //     // Remove formatting
 //     const numbers = cpf.replace(/\D/g, '');
-    
+
 //     // Check if has 11 digits
 //     if (numbers.length !== 11) return false;
-    
+
 //     // Check if all digits are the same
 //     if (/^(\d)\1{10}$/.test(numbers)) return false;
-    
+
 //     // Validate CPF algorithm
 //     let sum = 0;
 //     for (let i = 0; i < 9; i++) {
@@ -57,7 +57,7 @@
 //     let remainder = 11 - (sum % 11);
 //     if (remainder === 10 || remainder === 11) remainder = 0;
 //     if (remainder !== parseInt(numbers.charAt(9))) return false;
-    
+
 //     sum = 0;
 //     for (let i = 0; i < 10; i++) {
 //       sum += parseInt(numbers.charAt(i)) * (11 - i);
@@ -65,7 +65,7 @@
 //     remainder = 11 - (sum % 11);
 //     if (remainder === 10 || remainder === 11) remainder = 0;
 //     if (remainder !== parseInt(numbers.charAt(10))) return false;
-    
+
 //     return true;
 //   };
 
@@ -227,71 +227,68 @@
 //   );
 // };
 
-import React, { useState } from 'react';
-import { Plus, Trash } from 'lucide-react';
+import React, { useState } from 'react'
+import { Plus, Trash } from 'lucide-react'
 
 interface Contato {
-  id: number;
-  tipo: string;
-  nome: string;
-  cpf: string;
-  contato: string;
-  email: string;
+  id: number
+  tipo: string
+  nome: string
+  cpf: string
+  contato: string
+  email: string
 }
 
 interface TabelaContatosProps {
-  contatos: Contato[];
-  onChange: (contatos: Contato[]) => void;
+  contatos: Contato[]
+  onChange: (contatos: Contato[]) => void
 }
 
-export const TabelaContatos: React.FC<TabelaContatosProps> = ({
-  contatos,
-  onChange,
-}) => {
-    const formatCpf = (value: string): string => {
+export const TabelaContatos: React.FC<TabelaContatosProps> = ({ contatos, onChange }) => {
+  const formatCpf = (value: string): string => {
     // Remove all non-numeric characters
-    const numbers = value.replace(/\D/g, '');
-    
+    const numbers = value.replace(/\D/g, '')
+
     // Apply CPF formatting
-    if (numbers.length <= 3) return numbers;
-    if (numbers.length <= 6) return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
-    if (numbers.length <= 9) return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`;
-    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`;
-  };
+    if (numbers.length <= 3) return numbers
+    if (numbers.length <= 6) return `${numbers.slice(0, 3)}.${numbers.slice(3)}`
+    if (numbers.length <= 9)
+      return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`
+    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`
+  }
 
   const validateCpf = (cpf: string): boolean => {
     // Remove formatting
-    const numbers = cpf.replace(/\D/g, '');
-    
+    const numbers = cpf.replace(/\D/g, '')
+
     // Check if has 11 digits
-    if (numbers.length !== 11) return false;
-    
+    if (numbers.length !== 11) return false
+
     // Check if all digits are the same
-    if (/^(\d)\1{10}$/.test(numbers)) return false;
-    
+    if (/^(\d)\1{10}$/.test(numbers)) return false
+
     // Validate CPF algorithm
-    let sum = 0;
+    let sum = 0
     for (let i = 0; i < 9; i++) {
-      sum += parseInt(numbers.charAt(i)) * (10 - i);
+      sum += parseInt(numbers.charAt(i)) * (10 - i)
     }
-    let remainder = 11 - (sum % 11);
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(numbers.charAt(9))) return false;
-    
-    sum = 0;
+    let remainder = 11 - (sum % 11)
+    if (remainder === 10 || remainder === 11) remainder = 0
+    if (remainder !== parseInt(numbers.charAt(9))) return false
+
+    sum = 0
     for (let i = 0; i < 10; i++) {
-      sum += parseInt(numbers.charAt(i)) * (11 - i);
+      sum += parseInt(numbers.charAt(i)) * (11 - i)
     }
-    remainder = 11 - (sum % 11);
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(numbers.charAt(10))) return false;
-    
-    return true;
-  };
+    remainder = 11 - (sum % 11)
+    if (remainder === 10 || remainder === 11) remainder = 0
+    if (remainder !== parseInt(numbers.charAt(10))) return false
+
+    return true
+  }
 
   const adicionarContato = () => {
-    const novoId =
-      contatos.length > 0 ? Math.max(...contatos.map((c) => c.id)) + 1 : 1;
+    const novoId = contatos.length > 0 ? Math.max(...contatos.map((c) => c.id)) + 1 : 1
     const novosContatos = [
       ...contatos,
       {
@@ -302,25 +299,21 @@ export const TabelaContatos: React.FC<TabelaContatosProps> = ({
         contato: '',
         email: '',
       },
-    ];
-    onChange(novosContatos);
-  };
+    ]
+    onChange(novosContatos)
+  }
 
   const removerContato = (id: number) => {
-    const novosContatos = contatos.filter((c) => c.id !== id);
-    onChange(novosContatos);
-  };
+    const novosContatos = contatos.filter((c) => c.id !== id)
+    onChange(novosContatos)
+  }
 
-  const atualizarContato = (
-    id: number,
-    campo: keyof Contato,
-    valor: string,
-  ) => {
+  const atualizarContato = (id: number, campo: keyof Contato, valor: string) => {
     const novosContatos = contatos.map((contato) =>
       contato.id === id ? { ...contato, [campo]: valor } : contato,
-    );
-    onChange(novosContatos);
-  };
+    )
+    onChange(novosContatos)
+  }
 
   return (
     <div className="mb-6 p-4 sm:p-6 lg:p-8">
@@ -343,12 +336,24 @@ export const TabelaContatos: React.FC<TabelaContatosProps> = ({
         <table className="w-full border border-gray-200 hidden lg:table">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">Tipo Contato</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">Nome</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">CPF</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">Contato</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">E-mail</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">Ações</th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">
+                Tipo Contato
+              </th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">
+                Nome
+              </th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">
+                CPF
+              </th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">
+                Contato
+              </th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">
+                E-mail
+              </th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 whitespace-nowrap">
+                Ações
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -381,8 +386,8 @@ export const TabelaContatos: React.FC<TabelaContatosProps> = ({
                     type="text"
                     value={contato.cpf}
                     onChange={(e) => {
-                      const formattedCpf = formatCpf(e.target.value);
-                      atualizarContato(contato.id, 'cpf', formattedCpf);
+                      const formattedCpf = formatCpf(e.target.value)
+                      atualizarContato(contato.id, 'cpf', formattedCpf)
                     }}
                     placeholder="000.000.000-00"
                     className={`w-full border rounded-md p-2 text-sm ${contato.cpf && !validateCpf(contato.cpf) ? 'border-red-500 focus:border-red-500' : ''}`}
@@ -463,8 +468,8 @@ export const TabelaContatos: React.FC<TabelaContatosProps> = ({
                   className="w-full border rounded-md p-2 text-sm mt-1"
                   value={contato.cpf}
                   onChange={(e) => {
-                    const formattedCpf = formatCpf(e.target.value);
-                    atualizarContato(contato.id, 'cpf', formattedCpf);
+                    const formattedCpf = formatCpf(e.target.value)
+                    atualizarContato(contato.id, 'cpf', formattedCpf)
                   }}
                   placeholder="000.000.000-00"
                   maxLength={14}
@@ -507,5 +512,5 @@ export const TabelaContatos: React.FC<TabelaContatosProps> = ({
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
