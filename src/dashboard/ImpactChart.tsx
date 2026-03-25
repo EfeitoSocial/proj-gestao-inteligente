@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 
-import { supabase } from '@/integrations/supabase/client'
+import { supabase, hasValidSupabaseConfig } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 
 const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#f97316', '#8b5cf6']
@@ -14,6 +14,16 @@ export const ImpactChart: React.FC = () => {
   useEffect(() => {
     const fetchSocialClassData = async () => {
       if (!user) return
+
+      if (!hasValidSupabaseConfig) {
+        // Dados mockados caso as credenciais do Supabase não estejam configuradas
+        setData([
+          { name: 'Classe C', value: 8500, color: COLORS[0] },
+          { name: 'Classe D', value: 4500, color: COLORS[1] },
+          { name: 'Classe B', value: 2420, color: COLORS[2] },
+        ])
+        return
+      }
 
       try {
         const { data: projetos, error } = await supabase

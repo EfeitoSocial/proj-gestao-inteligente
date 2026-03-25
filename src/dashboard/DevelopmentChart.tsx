@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
-import { supabase } from '@/integrations/supabase/client'
+import { supabase, hasValidSupabaseConfig } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 
 export const DevelopmentChart: React.FC = () => {
@@ -12,6 +12,17 @@ export const DevelopmentChart: React.FC = () => {
   useEffect(() => {
     const fetchInvestmentData = async () => {
       if (!user) return
+
+      if (!hasValidSupabaseConfig) {
+        // Dados mockados caso as credenciais do Supabase não estejam configuradas
+        setData([
+          { name: 'Set', value: 80 },
+          { name: 'Out', value: 120 },
+          { name: 'Nov', value: 250 },
+          { name: 'Dez', value: 310 },
+        ])
+        return
+      }
 
       try {
         const { data: projetos, error } = await supabase

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase, hasValidSupabaseConfig } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 
@@ -126,6 +126,19 @@ export const LocationsMap: React.FC = () => {
   useEffect(() => {
     const fetchProjectsByState = async () => {
       if (!user) return
+
+      if (!hasValidSupabaseConfig) {
+        // Dados mockados caso as credenciais do Supabase não estejam configuradas
+        setStateProjects({
+          SP: 8,
+          MG: 5,
+          RJ: 4,
+          BA: 3,
+          PR: 2,
+          CE: 2,
+        })
+        return
+      }
 
       try {
         const { data: projetos, error } = await supabase

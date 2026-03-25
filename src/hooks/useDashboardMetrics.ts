@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase, hasValidSupabaseConfig } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 
 export interface DashboardMetrics {
@@ -26,6 +26,20 @@ export const useDashboardMetrics = () => {
   useEffect(() => {
     const fetchMetrics = async () => {
       if (!user) return
+
+      if (!hasValidSupabaseConfig) {
+        // Dados mockados caso as credenciais do Supabase não estejam configuradas
+        setMetrics({
+          totalProjetos: 24,
+          totalInvestimento: 1250000,
+          totalLocalizacoes: 8,
+          impactoSocial: 2500000,
+          valorTotalProjetos: 3200000,
+          pessoasImpactadas: 15420,
+        })
+        setLoading(false)
+        return
+      }
 
       try {
         // Buscar todos os projetos do usuário

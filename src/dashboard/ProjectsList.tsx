@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase, hasValidSupabaseConfig } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 
 interface ProjetoODS {
@@ -21,6 +21,29 @@ export const ProjectsList: React.FC = () => {
   useEffect(() => {
     const fetchProjetos = async () => {
       if (!user) return
+
+      if (!hasValidSupabaseConfig) {
+        // Dados mockados caso as credenciais do Supabase não estejam configuradas
+        setProjetos([
+          {
+            id: 'mock-1',
+            nome_projeto: 'Educação Digital para Jovens',
+            ods: [{ id: 'ods-4', numero: 4, nome: 'Educação de Qualidade' }],
+          },
+          {
+            id: 'mock-2',
+            nome_projeto: 'Saneamento Básico Rural',
+            ods: [{ id: 'ods-6', numero: 6, nome: 'Água Potável e Saneamento' }],
+          },
+          {
+            id: 'mock-3',
+            nome_projeto: 'Energia Solar Comunitária',
+            ods: [{ id: 'ods-7', numero: 7, nome: 'Energia Limpa e Acessível' }],
+          },
+        ])
+        setLoading(false)
+        return
+      }
 
       try {
         const { data, error } = await supabase
