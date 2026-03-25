@@ -53,8 +53,8 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            <Route path="*" element={<NotFound />} />
             <Route path="/projetos/:id" element={<ProjetoDetalhes />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
