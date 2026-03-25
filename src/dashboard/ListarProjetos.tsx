@@ -1,51 +1,51 @@
-import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { Filter, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
+import { Filter, X } from 'lucide-react'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 
 interface ListarProjetosProps {
-  estadoFiltro?: string | null;
+  estadoFiltro?: string | null
 }
 
 interface Projeto {
-  id: string;
-  nome_projeto: string;
-  resumo_projeto: string;
-  tipo_investimento: 'privado' | 'ir';
-  valor_aporte_projeto: number;
-  valor_total_projeto: number;
-  numero_pessoas_impactadas?: number;
-  localidade_projeto?: string;
-  data_inicio_projeto?: string;
-  data_fim_projeto?: string;
+  id: string
+  nome_projeto: string
+  resumo_projeto: string
+  tipo_investimento: 'privado' | 'ir'
+  valor_aporte_projeto: number
+  valor_total_projeto: number
+  numero_pessoas_impactadas?: number
+  localidade_projeto?: string
+  data_inicio_projeto?: string
+  data_fim_projeto?: string
 }
 
 export const ListarProjetos: React.FC<ListarProjetosProps> = ({ estadoFiltro }) => {
-  const { user } = useAuth();
-  const [projetos, setProjetos] = useState<Projeto[]>([]);
-  const [projetosComOds, setProjetosComOds] = useState<(Projeto & {ods_numeros: number[]})[]>([]);
-  const [locations, setLocations] = useState<string[]>([]);
-  const [odsOptions, setOdsOptions] = useState<{numero: number, nome: string}[]>([]);
-  
+  const { user } = useAuth()
+  const [projetos, setProjetos] = useState<Projeto[]>([])
+  const [projetosComOds, setProjetosComOds] = useState<(Projeto & { ods_numeros: number[] })[]>([])
+  const [locations, setLocations] = useState<string[]>([])
+  const [odsOptions, setOdsOptions] = useState<{ numero: number; nome: string }[]>([])
+
   // Filter states
-  const [tipoFilter, setTipoFilter] = useState<string>('todos');
-  const [locationFilter, setLocationFilter] = useState<string>('todas');
-  const [odsFilter, setOdsFilter] = useState<string>('todos');
-  
-  const navigate = useNavigate();
+  const [tipoFilter, setTipoFilter] = useState<string>('todos')
+  const [locationFilter, setLocationFilter] = useState<string>('todas')
+  const [odsFilter, setOdsFilter] = useState<string>('todos')
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     const buscarDados = async () => {
-      if (!user) return;
+      if (!user) return
 
       // Buscar projetos
       let baseQuery = supabase
@@ -53,25 +53,27 @@ export const ListarProjetos: React.FC<ListarProjetosProps> = ({ estadoFiltro }) 
         .select(
           'id, nome_projeto, resumo_projeto, tipo_investimento, valor_aporte_projeto, valor_total_projeto, numero_pessoas_impactadas, localidade_projeto, data_inicio_projeto, data_fim_projeto',
         )
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
 
       // Aplicar filtro por estado se fornecido
       if (estadoFiltro) {
         // Filtrar projetos que tenham o estado correspondente na localidade_projeto
-        baseQuery = baseQuery.or(`localidade_projeto.ilike.%${estadoFiltro}%,localidade_projeto.ilike.%, ${estadoFiltro}%`);
+        baseQuery = baseQuery.or(
+          `localidade_projeto.ilike.%${estadoFiltro}%,localidade_projeto.ilike.%, ${estadoFiltro}%`,
+        )
       }
 
-      const { data, error } = await baseQuery;
-  
+      const { data, error } = await baseQuery
+
       if (error) {
-        console.error('Erro ao buscar projetos:', error.message);
+        console.error('Erro ao buscar projetos:', error.message)
       } else {
         const projetosFormatados = (data || []).map((projeto) => ({
           ...projeto,
           tipo_investimento: projeto.tipo_investimento as 'privado' | 'ir',
-        }));
+        }))
 
-        setProjetos(projetosFormatados);
+        setProjetos(projetosFormatados)
 
         // Buscar ODS para cada projeto
         const projetosComOdsData = await Promise.all(
@@ -83,18 +85,19 @@ export const ListarProjetos: React.FC<ListarProjetosProps> = ({ estadoFiltro }) 
                   numero
                 )
               `)
-              .eq('projeto_id', projeto.id);
+              .eq('projeto_id', projeto.id)
 
-            const odsNumeros = odsData?.map(item => (item.ods as any).numero).filter(Boolean) || [];
-            
+            const odsNumeros =
+              odsData?.map((item) => (item.ods as any).numero).filter(Boolean) || []
+
             return {
               ...projeto,
-              ods_numeros: odsNumeros
-            };
-          })
-        );
+              ods_numeros: odsNumeros,
+            }
+          }),
+        )
 
-        setProjetosComOds(projetosComOdsData);
+        setProjetosComOds(projetosComOdsData)
       }
 
       // Buscar estados únicos das localizações
@@ -102,79 +105,78 @@ export const ListarProjetos: React.FC<ListarProjetosProps> = ({ estadoFiltro }) 
         .from('projetos')
         .select('localidade_projeto')
         .eq('user_id', user.id)
-        .not('localidade_projeto', 'is', null);
+        .not('localidade_projeto', 'is', null)
 
       if (locationsData) {
-        const uniqueStates = Array.from(new Set(
-          locationsData
-            .map(p => p.localidade_projeto)
-            .filter(Boolean)
-            .map(location => {
-              // Extrair apenas o estado (após a vírgula, se existir)
-              const parts = location.split(',');
-              return parts.length > 1 ? parts[1].trim() : location.trim();
-            })
-        )) as string[];
-        setLocations(uniqueStates);
+        const uniqueStates = Array.from(
+          new Set(
+            locationsData
+              .map((p) => p.localidade_projeto)
+              .filter(Boolean)
+              .map((location) => {
+                // Extrair apenas o estado (após a vírgula, se existir)
+                const parts = location.split(',')
+                return parts.length > 1 ? parts[1].trim() : location.trim()
+              }),
+          ),
+        ) as string[]
+        setLocations(uniqueStates)
       }
 
       // Buscar ODS disponíveis
-      const { data: odsData } = await supabase
-        .from('ods')
-        .select('numero, nome')
-        .order('numero');
+      const { data: odsData } = await supabase.from('ods').select('numero, nome').order('numero')
 
       if (odsData) {
-        setOdsOptions(odsData);
+        setOdsOptions(odsData)
       }
-    };
+    }
 
-    buscarDados();
-  }, [user, estadoFiltro]);
+    buscarDados()
+  }, [user, estadoFiltro])
 
-  const hasActiveFilters = tipoFilter !== 'todos' || locationFilter !== 'todas' || odsFilter !== 'todos';
+  const hasActiveFilters =
+    tipoFilter !== 'todos' || locationFilter !== 'todas' || odsFilter !== 'todos'
 
   // Função para limpar filtros
   const onClearFilters = () => {
-    setTipoFilter('todos');
-    setLocationFilter('todas');
-    setOdsFilter('todos');
-  };
+    setTipoFilter('todos')
+    setLocationFilter('todas')
+    setOdsFilter('todos')
+  }
 
   const projetosFiltrados = projetosComOds.filter((projeto) => {
     // Filtro por tipo
     if (tipoFilter !== 'todos' && projeto.tipo_investimento !== tipoFilter) {
-      return false;
+      return false
     }
-    
+
     // Filtro por localização (comparar apenas o estado)
     if (locationFilter !== 'todas') {
-      const projetoState = projeto.localidade_projeto ? 
-        (projeto.localidade_projeto.includes(',') ? 
-          projeto.localidade_projeto.split(',')[1].trim() : 
-          projeto.localidade_projeto.trim()) : '';
-      
+      const projetoState = projeto.localidade_projeto
+        ? projeto.localidade_projeto.includes(',')
+          ? projeto.localidade_projeto.split(',')[1].trim()
+          : projeto.localidade_projeto.trim()
+        : ''
+
       if (projetoState !== locationFilter) {
-        return false;
-      }
-    }
-    
-    // Filtro por ODS
-    if (odsFilter !== 'todos') {
-      const odsNumero = parseInt(odsFilter);
-      if (!projeto.ods_numeros.includes(odsNumero)) {
-        return false;
+        return false
       }
     }
 
-    return true;
-  });
+    // Filtro por ODS
+    if (odsFilter !== 'todos') {
+      const odsNumero = parseInt(odsFilter)
+      if (!projeto.ods_numeros.includes(odsNumero)) {
+        return false
+      }
+    }
+
+    return true
+  })
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-bold text-teal-600 mb-6">
-        Projetos Cadastrados
-      </h1>
+      <h1 className="text-2xl font-bold text-teal-600 mb-6">Projetos Cadastrados</h1>
 
       {/* Filtros de Projetos */}
       <div className="mb-8 border rounded-lg">
@@ -182,7 +184,7 @@ export const ListarProjetos: React.FC<ListarProjetosProps> = ({ estadoFiltro }) 
           <Filter className="w-5 h-5 text-teal-600 ml-4" />
           <h3 className="text-lg font-medium text-gray-700">Filtros de Projetos</h3>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
           {/* Tipo de Projeto */}
           <div className="space-y-2">
@@ -235,19 +237,14 @@ export const ListarProjetos: React.FC<ListarProjetosProps> = ({ estadoFiltro }) 
             </Select>
           </div>
 
-                  {hasActiveFilters && (
-          <div className="mt-4 pt-4 border-t">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onClearFilters}
-              className="gap-2"
-            >
-              <X size={14} />
-              Limpar Filtros
-            </Button>
-          </div>
-        )}
+          {hasActiveFilters && (
+            <div className="mt-4 pt-4 border-t">
+              <Button variant="outline" size="sm" onClick={onClearFilters} className="gap-2">
+                <X size={14} />
+                Limpar Filtros
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -261,9 +258,7 @@ export const ListarProjetos: React.FC<ListarProjetosProps> = ({ estadoFiltro }) 
             {/* Cabeçalho */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-gray-800">
-                  {projeto.nome_projeto}
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-800">{projeto.nome_projeto}</h2>
                 <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
                   <span className="flex items-center gap-1">
                     <svg
@@ -424,5 +419,5 @@ export const ListarProjetos: React.FC<ListarProjetosProps> = ({ estadoFiltro }) 
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
