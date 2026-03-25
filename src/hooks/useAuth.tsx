@@ -1,6 +1,10 @@
 import { useState, useEffect, createContext, useContext, type FC, type ReactNode } from 'react'
-import { User } from '@supabase/supabase-js'
-import { supabase } from '@/integrations/supabase/client'
+
+export interface User {
+  id: string
+  email?: string
+  user_metadata: any
+}
 
 interface AuthContextType {
   user: User | null
@@ -23,26 +27,21 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Verificar sessão atual
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setLoading(false)
+    // Verificar sessão atual simulada
+    const getSession = () => {
+      try {
+        const storedUser = localStorage.getItem('@app:user')
+        if (storedUser) {
+          setUser(JSON.parse(storedUser))
+        }
+      } catch (err) {
+        console.error('Error reading session', err)
+      } finally {
+        setLoading(false)
+      }
     }
 
     getSession()
-
-    // Escutar mudanças de autenticação
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
   }, [])
 
   const signUp = async (
@@ -52,69 +51,72 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     razaoSocial: string,
     cnpj: string,
   ) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
+    try {
+      const users = JSON.parse(localStorage.getItem('@app:users') || '[]')
+
+      if (users.some((u: any) => u.email === email)) {
+        return { error: { message: 'E-mail já cadastrado' } }
+      }
+
+      const newUser = {
+        id: Math.random().toString(36).substring(2) + Date.now().toString(36),
+        email,
+        password,
+        user_metadata: {
           nome_fantasia: nomeFantasia,
           razao_social: razaoSocial,
           cnpj: cnpj,
         },
-      },
-    })
-    return { error }
+      }
+
+      users.push(newUser)
+      localStorage.setItem('@app:users', JSON.stringify(users))
+
+      return { error: null }
+    } catch (err) {
+      return { error: { message: 'Erro ao cadastrar usuário' } }
+    }
   }
 
   const signIn = async (loginField: string, password: string) => {
-    // Se o campo de login contém @, assumir que é um e-mail
-    if (loginField.includes('@')) {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: loginField,
-        password,
-      })
-      return { error }
-    }
-
-    // Se não contém @, buscar o e-mail através do CNPJ ou Nome Fantasia na tabela profiles
     try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .or(`cnpj.eq.${loginField},nome_fantasia.ilike.${loginField}`)
-        .single()
+      // Simular delay de rede
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
-      if (profileError || !profile) {
-        return {
-          error: { message: 'Empresa não encontrada ou dados incorretos' },
+      const users = JSON.parse(localStorage.getItem('@app:users') || '[]')
+      let foundUser = null
+
+      if (loginField.includes('@')) {
+        foundUser = users.find((u: any) => u.email === loginField && u.password === password)
+      } else {
+        foundUser = users.find(
+          (u: any) =>
+            (u.user_metadata.cnpj === loginField ||
+              u.user_metadata.nome_fantasia.toLowerCase() === loginField.toLowerCase()) &&
+            u.password === password,
+        )
+      }
+
+      if (!foundUser) {
+        if (loginField.includes('@')) {
+          return { error: { message: 'E-mail ou senha incorretos' } }
         }
+        return { error: { message: 'Empresa não encontrada ou dados incorretos' } }
       }
 
-      // Buscar o usuário na tabela auth.users usando o ID do perfil
-      // Como não podemos acessar auth.users diretamente, vamos tentar uma abordagem diferente
-      // Vamos buscar todos os perfis que correspondem e tentar fazer login com cada um
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .or(`cnpj.eq.${loginField},nome_fantasia.ilike.${loginField}`)
+      const { password: _, ...userWithoutPassword } = foundUser
+      setUser(userWithoutPassword)
+      localStorage.setItem('@app:user', JSON.stringify(userWithoutPassword))
 
-      if (profilesError || !profiles || profiles.length === 0) {
-        return { error: { message: 'Empresa não encontrada' } }
-      }
-
-      // Como não podemos acessar o email diretamente, retornamos um erro mais específico
-      return {
-        error: {
-          message: 'Para login com CNPJ ou Nome Fantasia, use seu e-mail cadastrado',
-        },
-      }
-    } catch (e) {
+      return { error: null }
+    } catch (err) {
       return { error: { message: 'Erro ao processar login' } }
     }
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    setUser(null)
+    localStorage.removeItem('@app:user')
   }
 
   const value = {
