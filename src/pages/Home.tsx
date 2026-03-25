@@ -99,23 +99,23 @@
 //   );
 // };
 
-import React from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import React from 'react'
+import { Link, Navigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
 
 export const Home: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuth()
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />
   }
 
   return (
@@ -123,7 +123,9 @@ export const Home: React.FC = () => {
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 sm:p-8">
         <div className="text-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Bem-vindo!</h1>
-          <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Sistema de Gestão Inteligente</p>
+          <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
+            Sistema de Gestão Inteligente
+          </p>
 
           <div className="space-y-3 sm:space-y-4">
             <Link
@@ -143,5 +145,5 @@ export const Home: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
